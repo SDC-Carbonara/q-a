@@ -1,0 +1,26 @@
+{
+  "name": "q-a",
+  "description": "",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SDC-Carbonara/q-a.git"
+  },
+  "author": "allie",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SDC-Carbonara/q-a/issues"
+  },
+  "homepage": "https://github.com/SDC-Carbonara/q-a#readme",
+  "dependencies": {
+    "axios": "^0.26.0",
+    "express": "^4.17.3",
+    "pg": "^8.7.3",
+    "pg-promise": "^10.11.1"
+  }
+}
