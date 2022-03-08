@@ -10,27 +10,29 @@ const pool = new Pool({
 })
 
 
+// const getQuestions = (productId, count) => {
+//   return pool.query(`SELECT json_build_object('product_id', '${productId}', 'results', json_agg(main))
+//   FROM (
+//     SELECT * FROM questions WHERE product_id=${productId} LIMIT ${count}
+//     ) main`);
+// };
+
+
 const getQuestions = (productId, count) => {
   return pool.query(`SELECT json_build_object('product_id', '${productId}', 'results', json_agg(main))
-  FROM (
-    SELECT * FROM questions WHERE product_id=${productId} LIMIT ${count}
-    ) main`);
-};
-
-const test = (productId, count) => {
-  return pool.query(`SELECT json_build_object('product_id', '${productId}', 'results', json_agg(main))
 FROM
-  (SELECT q.*, (SELECT array_agg(answer_sub)
-  FROM
-    (SELECT a.*,
-      (SELECT coalesce(array_agg(sub), ARRAY[]::record[])
-      FROM (
-        SELECT ap.url
+  (SELECT q.*,
+    (SELECT coalesce(json_object_agg(answer_id, json_build_object('id', answer_id, 'body', body, 'date', date, 'answerer_name', answerer_name, 'helpfulness', helpfulness, 'photos',
+
+    (SELECT ARRAY(SELECT ap.url
         FROM answers_photos ap
         WHERE ap.answer_id = a.answer_id
-      ) sub ) as photos
+      )
+    )
+
+    )), '{}'::json)
       FROM answers a
-      WHERE a.question_id = q.question_id) answer_sub
+      WHERE a.question_id = q.question_id
   ) as answers
   FROM questions q WHERE q.product_id=${productId} LIMIT ${count}
   ) main`);
@@ -60,7 +62,7 @@ const getAnswers = (questionId, count) => {
 module.exports = {
   getQuestions: getQuestions,
   getAnswers: getAnswers,
-  test: test
+  // test: test
 };
 
 
