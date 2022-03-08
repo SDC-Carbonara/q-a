@@ -5,14 +5,11 @@ const port = 4285;
 
 app.use(express.json());
 
-app.get('/allie', (req, res) => {
-  db.getQuestions()
+
+app.get('/qa/questions/', (req, res) => {
+  db.getQuestions(req.query.product_id, req.query.count || 5)
     .then(questionInfo => {
-      let questionObj = {
-        product_id: '1',
-        results: questionInfo.rows,
-      };
-      res.send(questionObj);
+      res.send(questionInfo.rows[0].json_build_object);
     })
     .catch(err => {
       console.log(err);
@@ -20,26 +17,30 @@ app.get('/allie', (req, res) => {
     })
 });
 
+app.get('/test', (req, res) => {
+  db.test(req.query.product_id, req.query.count || 10)
+  .then(info => {
+    res.send(info.rows[0].json_build_object);
+  })
+  .catch(err => {
+    res.send(err);
+    console.log(err);
+  })
+});
 
-app.get('/diorio', (req, res) => {
-  db.getAnswers()
+
+app.get('/qa/questions/:question_id/answers', (req, res) => {
+  db.getAnswers(req.params.question_id, req.query.count || 5)
     .then(answerInfo => {
-      res.send(answerInfo.rows);
+      res.send(answerInfo.rows[0].json_build_object);
     })
     .catch(err => {
-      res.send(err);
+      console.log(err);
+      res.send('NOPE');
     })
 });
 
-app.get('/pics', (req, res) => {
-  db.getPhotos()
-    .then(photos => {
-      res.send(photos.rows);
-    })
-    .catch(err => {
-      res.send(err);
-    })
-})
+
 
 app.listen(port, () => {
   console.log(`listening on port ${port}`);

@@ -9,30 +9,58 @@ const pool = new Pool({
   password: 'password'
 })
 
-// const getQuestions = () => {
-//   return pool.query('SELECT * FROM questions WHERE product_id=1');
-// };
 
-const getQuestions = () => {
-  return pool.query('SELECT * FROM questions WHERE product_id=1');
+const getQuestions = (productId, count) => {
+  return pool.query(`SELECT json_build_object('product_id', '${productId}', 'results', json_agg(main))
+  FROM (
+    SELECT * FROM questions WHERE product_id=${productId} LIMIT ${count}
+    ) main`);
 };
 
-const getAnswers = () => {
-  return pool.query('SELECT * FROM answers WHERE question_id=1');
-  // pool.query('SELECT * FROM answers WHERE id=1', (err, res) => {
-  //   callback(res.rows);
-  // })
+const test = (productId, count) => {
+  return pool.query(`SELECT json_build_object('product_id', '${productId}', 'results', json_agg(main))
+FROM
+  (SELECT q.*, (SELECT array_agg(answer_sub)
+  FROM
+    (SELECT a.*,
+      (SELECT coalesce(array_agg(sub), ARRAY[]::record[])
+      FROM (
+        SELECT ap.url
+        FROM answers_photos ap
+        WHERE ap.answer_id = a.answer_id
+      ) sub ) as photos
+      FROM answers a
+      WHERE a.question_id = q.question_id) answer_sub
+  ) as answers
+  FROM questions q WHERE q.product_id=${productId} LIMIT ${count}
+  ) main`);
 };
 
-const getPhotos = () => {
-  return pool.query('SELECT * FROM answers_photos WHERE answer_id=5');
+
+const getAnswers = (questionId, count) => {
+  let countAnswers = `(SELECT COUNT(answer_id) FROM answers WHERE question_id = ${questionId})`;
+
+  return pool.query(`SELECT json_build_object('question', '${questionId}', 'count', ${countAnswers}, 'results', json_agg(main))
+  FROM (
+    SELECT a.*,
+    (SELECT coalesce(array_agg(row_to_json(sub)), ARRAY[]::json[])
+      FROM (
+        SELECT ap.id, ap.url
+        FROM answers_photos ap
+        WHERE ap.answer_id = a.answer_id
+      ) sub
+    ) as photos
+    FROM answers a
+    WHERE a.question_id = ${questionId} LIMIT ${count}
+  ) main`
+  );
 };
+
+
 module.exports = {
   getQuestions: getQuestions,
   getAnswers: getAnswers,
-  getPhotos: getPhotos
+  test: test
 };
-
-
 
 
